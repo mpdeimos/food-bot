@@ -1,4 +1,3 @@
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -16,16 +15,21 @@ import com.mpdeimos.foodscraper.data.IDish;
 import com.mpdeimos.foodscraper.data.IMenu;
 
 public class Slack {
-	private static String SLACK_URL = System.getenv().get("SLACK_URL");
 
-	private static final DecimalFormat FORMAT = new DecimalFormat("#.00€"); //$NON-NLS-1$
-
-	private static final String[] COLORS = new String[] { "#FF8800", "#9933CC",
+	private final String[] COLORS = new String[] { "#FF8800", "#9933CC",
 			"#669900", "#0099CC", };
 
-	public static void main(String[] args) throws Exception {
+	private Config config;
+
+	public Slack(Config config) {
+		this.config = config;
+
+	}
+
+	public String sendBistro(spark.Request req, spark.Response res)
+			throws Exception {
 		Message message = new Message("Das gibt's heute zu essen:");
-		message.channel = "#general";
+		message.channel = config.SLACK_CHANNEL;
 
 		Iterator<String> colors = Arrays.asList(COLORS).iterator();
 
@@ -35,22 +39,23 @@ public class Slack {
 			attachment.color = colors.next();
 			for (IDish dish : entry.getValue().getDishes()) {
 				Field field = new Field(dish.getName());
-				field.value = FORMAT.format(dish.getPrice());
+				field.value = config.PRICE_FORMAT.format(dish.getPrice());
 				attachment.fields.add(field);
 			}
 			if (attachment.fields.size() == 0) {
-				Field field = new Field("...hat eine bescheidene Website");
+				Field field = new Field(
+						"...hat heute nichts im Angebot oder eine bescheidene Website :(");
 				attachment.fields.add(field);
 			}
 			message.attachments.add(attachment);
 		}
 
 		Content content = Request
-				.Post(SLACK_URL)
+				.Post(config.SLACK_URL)
 				.bodyString(new Gson().toJson(message),
 						ContentType.APPLICATION_JSON).execute().returnContent();
 
-		System.out.println(content.asString());
+		return content.asString();
 	}
 
 	private static class Message {
@@ -78,27 +83,6 @@ public class Slack {
 			this.fallback = fallback;
 		}
 
-		// "fallback":
-		// "Required text summary of the attachment that is shown by clients that understand attachments but choose not to show them.",
-		//
-		// "text": "Optional text that should appear within the attachment",
-		// "pretext":
-		// "Optional text that should appear above the formatted data",
-		//
-		// "color": "#36a64f", // Can either be one of 'good', 'warning',
-		// 'danger', or any hex color code
-		//
-		// // Fields are displayed in a table on the message
-		// "fields": [
-		// {
-		// "title": "Required Field Title", // The title may not contain markup
-		// and will be escaped for you
-		// "value":
-		// "Text value of the field. May contain standard message markup and must be escaped as normal. May be multi-line.",
-		// "short": false // Optional flag indicating whether the `value` is
-		// short enough to be displayed side-by-side with other values
-		// }
-		// ]
 	}
 
 	public static class Field {
