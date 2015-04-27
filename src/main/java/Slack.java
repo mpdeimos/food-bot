@@ -16,8 +16,8 @@ import com.mpdeimos.foodscraper.data.IMenu;
 
 public class Slack {
 
-	private final String[] COLORS = new String[] { "#FF8800", "#9933CC",
-			"#669900", "#0099CC", };
+	private final String[] COLORS = new String[] { "#FF8800", "#669900",
+			"#9933CC", "#0099CC", };
 
 	private Config config;
 
