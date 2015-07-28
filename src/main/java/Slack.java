@@ -16,8 +16,8 @@ import com.mpdeimos.foodscraper.data.IMenu;
 
 public class Slack {
 
-	private final String[] COLORS = new String[] { "#FF8800", "#669900",
-			"#9933CC", "#0099CC", };
+	private final String[] COLORS = new String[]{"#FF8800", "#669900",
+			"#9933CC", "#0099CC",};
 
 	private Config config;
 
@@ -39,7 +39,9 @@ public class Slack {
 			attachment.color = colors.next();
 			for (IDish dish : entry.getValue().getDishes()) {
 				Field field = new Field(dish.getName());
-				field.value = config.PRICE_FORMAT.format(dish.getPrice());
+				if (dish.getPrice() > 0) {
+					field.value = config.PRICE_FORMAT.format(dish.getPrice());
+				}
 				attachment.fields.add(field);
 			}
 			if (attachment.fields.size() == 0) {
@@ -50,10 +52,10 @@ public class Slack {
 			message.attachments.add(attachment);
 		}
 
-		Content content = Request
-				.Post(config.SLACK_URL)
+		Content content = Request.Post(config.SLACK_URL)
 				.bodyString(new Gson().toJson(message),
-						ContentType.APPLICATION_JSON).execute().returnContent();
+						ContentType.APPLICATION_JSON)
+				.execute().returnContent();
 
 		return content.asString();
 	}
