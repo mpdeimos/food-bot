@@ -16,8 +16,7 @@ import com.mpdeimos.foodscraper.data.IMenu;
 
 public class Slack {
 
-	private final String[] COLORS = new String[]{"#FF8800", "#669900",
-			"#9933CC", "#0099CC",};
+	private final String[] COLORS = new String[] { "#FF8800", "#669900", "#9933CC", "#0099CC", };
 
 	private Config config;
 
@@ -26,16 +25,17 @@ public class Slack {
 
 	}
 
-	public String sendBistro(spark.Request req, spark.Response res)
-			throws Exception {
-		Message message = new Message("Das gibt's heute zu essen:");
-		message.channel = config.SLACK_CHANNEL;
+	public List<String> sendBistro(spark.Request req, spark.Response res) throws Exception {
 
 		Iterator<String> colors = Arrays.asList(COLORS).iterator();
 
+		List<String> responses = new ArrayList<String>();
+
 		for (Entry<IBistro, IMenu> entry : new Retriever().getTodaysMenu()) {
+			Message message = new Message(entry.getKey().getName());
+			message.channel = config.SLACK_CHANNEL;
+
 			Attachment attachment = new Attachment("fallback");
-			attachment.pretext = entry.getKey().getName();
 			attachment.color = colors.next();
 			for (IDish dish : entry.getValue().getDishes()) {
 				Field field = new Field(dish.getName());
@@ -45,19 +45,17 @@ public class Slack {
 				attachment.fields.add(field);
 			}
 			if (attachment.fields.size() == 0) {
-				Field field = new Field(
-						"...hat heute nichts im Angebot oder eine bescheidene Website :(");
+				Field field = new Field("...hat heute nichts im Angebot (oder eine bescheidene Website)");
 				attachment.fields.add(field);
 			}
 			message.attachments.add(attachment);
+
+			Content content = Request.Post(config.SLACK_URL)
+					.bodyString(new Gson().toJson(message), ContentType.APPLICATION_JSON).execute().returnContent();
+			responses.add(content.asString());
 		}
 
-		Content content = Request.Post(config.SLACK_URL)
-				.bodyString(new Gson().toJson(message),
-						ContentType.APPLICATION_JSON)
-				.execute().returnContent();
-
-		return content.asString();
+		return responses;
 	}
 
 	private static class Message {
