@@ -30,10 +30,17 @@ public class Server {
 		Spark.get("/get", this::getUrl);
 	}
 
-	public Object getHome(Request req, Response res) throws ScraperException {
+	public Object getHome(Request req, Response res) {
 		StringWriter out = new StringWriter();
 		PrintWriter writer = new PrintWriter(out);
-		Iterable<Entry<IBistro, IMenu>> menu = new Retriever().getTodaysMenu();
+		Retriever retriever = new Retriever();
+		try {
+			retriever.retrieve();
+		} catch (ScraperException e) {
+			writer.println("Error: " + e.getMessage());
+			writer.println(Strings.EMPTY);
+		}
+		Iterable<Entry<IBistro, IMenu>> menu = retriever.getTodaysMenu();
 		for (Entry<IBistro, IMenu> entry : menu) {
 			try {
 				writer.println("## " + entry.getKey().getName() + " ##");

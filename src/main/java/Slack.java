@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -13,6 +14,7 @@ import com.mpdeimos.foodscraper.Retriever;
 import com.mpdeimos.foodscraper.data.IBistro;
 import com.mpdeimos.foodscraper.data.IDish;
 import com.mpdeimos.foodscraper.data.IMenu;
+import com.mpdeimos.webscraper.ScraperException;
 
 public class Slack {
 
@@ -25,13 +27,29 @@ public class Slack {
 
 	}
 
-	public List<String> sendBistro(spark.Request req, spark.Response res) throws Exception {
+	public List<String> sendBistro(spark.Request req, spark.Response res) throws IOException {
 
 		Iterator<String> colors = Arrays.asList(COLORS).iterator();
 
 		List<String> responses = new ArrayList<String>();
 
-		for (Entry<IBistro, IMenu> entry : new Retriever().getTodaysMenu()) {
+		Retriever retriever = new Retriever();
+		try {
+			retriever.retrieve();
+		} catch (ScraperException e) {
+			Message message = new Message("Error");
+			message.channel = config.SLACK_CHANNEL;
+
+			Attachment attachment = new Attachment("fallback");
+			attachment.color = "#FF0000";
+			Field field = new Field(e.getClass().getSimpleName());
+			field.value = e.getMessage();
+			attachment.fields.add(field);
+			message.attachments.add(attachment);
+			Request.Post(config.SLACK_URL).bodyString(new Gson().toJson(message), ContentType.APPLICATION_JSON)
+					.execute().returnContent();
+		}
+		for (Entry<IBistro, IMenu> entry : retriever.getTodaysMenu()) {
 			Message message = new Message(entry.getKey().getName());
 			message.channel = config.SLACK_CHANNEL;
 
