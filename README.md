@@ -1,4 +1,4 @@
-# java-getting-started [![Build Status](https://travis-ci.org/mpdeimos/food-bot.svg?branch=master)](https://travis-ci.org/mpdeimos/food-bot)
+# Slack Food Bot [![Build Status](https://travis-ci.org/mpdeimos/food-bot.svg?branch=master)](https://travis-ci.org/mpdeimos/food-bot)
 
 Posts daily meal in our slack channel.
 
