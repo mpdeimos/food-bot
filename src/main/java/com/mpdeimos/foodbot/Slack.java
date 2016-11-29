@@ -1,3 +1,5 @@
+package com.mpdeimos.foodbot;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,27 +18,35 @@ import com.mpdeimos.foodscraper.data.IDish;
 import com.mpdeimos.foodscraper.data.IMenu;
 import com.mpdeimos.webscraper.ScraperException;
 
-public class Slack {
+public class Slack
+{
 
-	private final String[] COLORS = new String[] { "#FF8800", "#669900", "#9933CC", "#0099CC", };
+	private final String[] COLORS = new String[] { "#FF8800", "#669900",
+			"#9933CC", "#0099CC", };
 
 	private Config config;
 
-	public Slack(Config config) {
+	public Slack(Config config)
+	{
 		this.config = config;
 
 	}
 
-	public List<String> sendBistro(spark.Request req, spark.Response res) throws IOException {
+	public List<String> sendBistro(spark.Request req, spark.Response res)
+			throws IOException
+	{
 
 		Iterator<String> colors = Arrays.asList(COLORS).iterator();
 
 		List<String> responses = new ArrayList<String>();
 
 		Retriever retriever = new Retriever();
-		try {
+		try
+		{
 			retriever.retrieve();
-		} catch (ScraperException e) {
+		}
+		catch (ScraperException e)
+		{
 			Message message = new Message("Error");
 			message.channel = config.SLACK_CHANNEL;
 
@@ -46,37 +56,45 @@ public class Slack {
 			field.value = e.getMessage();
 			attachment.fields.add(field);
 			message.attachments.add(attachment);
-			Request.Post(config.SLACK_URL).bodyString(new Gson().toJson(message), ContentType.APPLICATION_JSON)
-					.execute().returnContent();
+			Request.Post(config.SLACK_URL).bodyString(
+					new Gson().toJson(message),
+					ContentType.APPLICATION_JSON).execute().returnContent();
 		}
-		for (Entry<IBistro, IMenu> entry : retriever.getTodaysMenu()) {
+		for (Entry<IBistro, IMenu> entry : retriever.getTodaysMenu())
+		{
 			Message message = new Message(entry.getKey().getName());
 			message.channel = config.SLACK_CHANNEL;
 
 			Attachment attachment = new Attachment("fallback");
 			attachment.color = colors.next();
-			for (IDish dish : entry.getValue().getDishes()) {
+			for (IDish dish : entry.getValue().getDishes())
+			{
 				Field field = new Field(dish.getName());
-				if (dish.getPrice() > 0) {
+				if (dish.getPrice() > 0)
+				{
 					field.value = config.PRICE_FORMAT.format(dish.getPrice());
 				}
 				attachment.fields.add(field);
 			}
-			if (attachment.fields.size() == 0) {
-				Field field = new Field("...hat heute nichts im Angebot (oder eine bescheidene Website)");
+			if (attachment.fields.size() == 0)
+			{
+				Field field = new Field(
+						"...hat heute nichts im Angebot (oder eine bescheidene Website)");
 				attachment.fields.add(field);
 			}
 			message.attachments.add(attachment);
 
-			Content content = Request.Post(config.SLACK_URL)
-					.bodyString(new Gson().toJson(message), ContentType.APPLICATION_JSON).execute().returnContent();
+			Content content = Request.Post(config.SLACK_URL).bodyString(
+					new Gson().toJson(message),
+					ContentType.APPLICATION_JSON).execute().returnContent();
 			responses.add(content.asString());
 		}
 
 		return responses;
 	}
 
-	private static class Message {
+	private static class Message
+	{
 		public String channel = "test";
 
 		public String icon_emoji = ":fork_and_knife:";
@@ -85,29 +103,34 @@ public class Slack {
 
 		public final String text;
 
-		public Message(String text) {
+		public Message(String text)
+		{
 			this.text = text;
 		}
 	}
 
-	private static class Attachment {
+	private static class Attachment
+	{
 		public final String fallback;
 		public String text;
 		public String pretext;
 		public String color;
 		public List<Field> fields = new ArrayList<Field>();
 
-		public Attachment(String fallback) {
+		public Attachment(String fallback)
+		{
 			this.fallback = fallback;
 		}
 
 	}
 
-	public static class Field {
+	public static class Field
+	{
 		private final String title;
 		private String value;
 
-		public Field(String title) {
+		public Field(String title)
+		{
 			this.title = title;
 		}
 	}

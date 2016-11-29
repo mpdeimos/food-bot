@@ -1,3 +1,5 @@
+rootProject.name="com.mpdeimos.foodbot"
+
 include 'com.mpdeimos.foodscraper'
 project(':com.mpdeimos.foodscraper').projectDir = file("vendor/com.mpdeimos.foodscraper")
 
