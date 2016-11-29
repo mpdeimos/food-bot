@@ -1,0 +1,3 @@
+[submodule "vendor/com.mpdeimos.foodscraper"]
+	path = vendor/com.mpdeimos.foodscraper
+	url = https://github.com/mpdeimos/food-scraper

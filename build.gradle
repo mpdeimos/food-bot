@@ -1,0 +1,13 @@
+apply plugin: 'java'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile project(':com.mpdeimos.webscraper')
+	compile project(':com.mpdeimos.foodscraper')
+	compile "org.apache.httpcomponents:httpclient:4.3.1"
+	compile "org.apache.httpcomponents:fluent-hc:4.3.6"
+	compile "com.sparkjava:spark-core:2.1"
+}

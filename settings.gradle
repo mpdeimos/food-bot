@@ -1,0 +1,5 @@
+include 'com.mpdeimos.foodscraper'
+project(':com.mpdeimos.foodscraper').projectDir = file("vendor/com.mpdeimos.foodscraper")
+
+include 'com.mpdeimos.webscraper'
+project(':com.mpdeimos.webscraper').projectDir = file("vendor/com.mpdeimos.foodscraper/vendor/com.mpdeimos.webscraper")
