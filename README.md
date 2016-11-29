@@ -7,6 +7,10 @@ Posts daily meal in our slack channel.
 * Clone with recursive submodules
 * `PORT=9000 ./gradlew run` or `heroku local web`
 
+## Import in Eclipse
+
+* Import > Gradle Project will import all projects including submodules
+
 ## Deploying to Heroku
 
 ```sh
