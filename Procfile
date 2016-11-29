@@ -1,1 +1,2 @@
-web:    java -Duser.timezone="Europe/Berlin" -cp target/classes:target/dependency/* Server
+web:    ./build/install/com.mpdeimos.foodbot/bin/com.mpdeimos.foodbot 
+-Duser.timezone="Europe/Berlin"
