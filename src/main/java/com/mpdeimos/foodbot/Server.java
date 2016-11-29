@@ -1,18 +1,15 @@
 package com.mpdeimos.foodbot;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Map.Entry;
-
-import org.apache.http.client.ClientProtocolException;
-
 import com.mpdeimos.foodscraper.Retriever;
 import com.mpdeimos.foodscraper.data.IBistro;
 import com.mpdeimos.foodscraper.data.IDish;
 import com.mpdeimos.foodscraper.data.IMenu;
 import com.mpdeimos.webscraper.ScraperException;
 import com.mpdeimos.webscraper.util.Strings;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Map.Entry;
 
 import spark.Request;
 import spark.Response;
@@ -33,7 +30,6 @@ public class Server
 		Spark.get("/", this::getHome);
 		Spark.get("/slack/bistro", slack::sendBistro);
 		Spark.get("/config", (req, res) -> new Config(), new JsonTransformer());
-		Spark.get("/get", this::getUrl);
 	}
 
 	public Object getHome(Request req, Response res)
@@ -76,16 +72,6 @@ public class Server
 	public Object getSlackBistro(Request req, Response res)
 	{
 		return new Config();
-	}
-
-	public Object getUrl(Request req, Response res)
-			throws ClientProtocolException, IOException
-	{
-		res.type("text/html; charset=UTF-8");
-
-		return org.apache.http.client.fluent.Request.Get(
-				req.queryParams("url")).connectTimeout(5000).socketTimeout(
-						5000).execute().returnContent().asString();
 	}
 
 	public static void main(String[] args)
