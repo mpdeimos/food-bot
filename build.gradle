@@ -8,9 +8,11 @@ repositories {
 dependencies {
 	compile project(':com.mpdeimos.webscraper')
 	compile project(':com.mpdeimos.foodscraper')
-	compile "org.apache.httpcomponents:httpclient:4.3.1"
-	compile "org.apache.httpcomponents:fluent-hc:4.3.6"
-	compile "com.sparkjava:spark-core:2.1"
+	compile 'org.apache.httpcomponents:fluent-hc:4.3.6'
+	compile 'com.sparkjava:spark-core:2.5.4'
+	compile 'org.aeonbits.owner:owner:1.0.9'
+	
+	runtime 'org.slf4j:slf4j-simple:1.7.22'
 }
 
 mainClassName = "${project.name}.Server"

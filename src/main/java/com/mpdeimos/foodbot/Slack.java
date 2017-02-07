@@ -1,6 +1,13 @@
 package com.mpdeimos.foodbot;
 
+import com.mpdeimos.foodscraper.Retriever;
+import com.mpdeimos.foodscraper.data.IBistro;
+import com.mpdeimos.foodscraper.data.IDish;
+import com.mpdeimos.foodscraper.data.IMenu;
+import com.mpdeimos.webscraper.ScraperException;
+
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -12,21 +19,18 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 
 import com.google.gson.Gson;
-import com.mpdeimos.foodscraper.Retriever;
-import com.mpdeimos.foodscraper.data.IBistro;
-import com.mpdeimos.foodscraper.data.IDish;
-import com.mpdeimos.foodscraper.data.IMenu;
-import com.mpdeimos.webscraper.ScraperException;
 
 public class Slack
 {
+	public static final DecimalFormat PRICE_FORMAT = new DecimalFormat(
+			"#.00€");
 
 	private final String[] COLORS = new String[] { "#FF8800", "#669900",
 			"#9933CC", "#0099CC", };
 
-	private Config config;
+	private final AppConfig config;
 
-	public Slack(Config config)
+	public Slack(AppConfig config)
 	{
 		this.config = config;
 
@@ -48,7 +52,7 @@ public class Slack
 		catch (ScraperException e)
 		{
 			Message message = new Message("Error");
-			message.channel = config.SLACK_CHANNEL;
+			message.channel = config.slackChannel();
 
 			Attachment attachment = new Attachment("fallback");
 			attachment.color = "#FF0000";
@@ -56,14 +60,14 @@ public class Slack
 			field.value = e.getMessage();
 			attachment.fields.add(field);
 			message.attachments.add(attachment);
-			Request.Post(config.SLACK_URL).bodyString(
+			Request.Post(config.slackUrl()).bodyString(
 					new Gson().toJson(message),
 					ContentType.APPLICATION_JSON).execute().returnContent();
 		}
 		for (Entry<IBistro, IMenu> entry : retriever.getTodaysMenu())
 		{
 			Message message = new Message(entry.getKey().getName());
-			message.channel = config.SLACK_CHANNEL;
+			message.channel = config.slackChannel();
 
 			Attachment attachment = new Attachment("fallback");
 			attachment.color = colors.next();
@@ -72,7 +76,7 @@ public class Slack
 				Field field = new Field(dish.getName());
 				if (dish.getPrice() > 0)
 				{
-					field.value = config.PRICE_FORMAT.format(dish.getPrice());
+					field.value = PRICE_FORMAT.format(dish.getPrice());
 				}
 				attachment.fields.add(field);
 			}
@@ -84,7 +88,7 @@ public class Slack
 			}
 			message.attachments.add(attachment);
 
-			Content content = Request.Post(config.SLACK_URL).bodyString(
+			Content content = Request.Post(config.slackUrl()).bodyString(
 					new Gson().toJson(message),
 					ContentType.APPLICATION_JSON).execute().returnContent();
 			responses.add(content.asString());

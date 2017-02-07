@@ -11,25 +11,31 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Map.Entry;
 
+import org.aeonbits.owner.ConfigFactory;
+
 import spark.Request;
 import spark.Response;
 import spark.Spark;
 
 public class Server
 {
+	public final AppConfig config = ConfigFactory.create(
+			AppConfig.class,
+			System.getenv());
 
-	public final Config config = new Config();
 	public final Slack slack = new Slack(config);
 
 	public Server()
 	{
-		Spark.port(config.PORT);
+		Spark.port(config.serverPort());
 		Spark.before(
 				(request, response) -> response.type(
 						"text/plain; charset=UTF-8"));
 		Spark.get("/", this::getHome);
 		Spark.get("/slack/bistro", slack::sendBistro);
-		Spark.get("/config", (req, res) -> new Config(), new JsonTransformer());
+		Spark.get(
+				"/config",
+				(req, res) -> "Posting to: " + config.slackChannel());
 	}
 
 	public Object getHome(Request req, Response res)
@@ -57,7 +63,7 @@ public class Server
 				{
 					writer.println(" " + dish.getName());
 					writer.println(
-							" " + config.PRICE_FORMAT.format(dish.getPrice()));
+							" " + Slack.PRICE_FORMAT.format(dish.getPrice()));
 					writer.println(Strings.EMPTY);
 				}
 			}
@@ -67,11 +73,6 @@ public class Server
 			}
 		}
 		return out.getBuffer().toString();
-	}
-
-	public Object getSlackBistro(Request req, Response res)
-	{
-		return new Config();
 	}
 
 	public static void main(String[] args)
