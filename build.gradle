@@ -15,6 +15,6 @@ dependencies {
 	runtime 'org.slf4j:slf4j-simple:1.7.22'
 }
 
-mainClassName = "${project.name}.Server"
+mainClassName = "com.mpdeimos.foodbot.Server"
 
 task stage(dependsOn: ['clean', 'installDist'])
