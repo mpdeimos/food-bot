@@ -14,11 +14,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.http.client.fluent.Content;
-import org.apache.http.client.fluent.Request;
-import org.apache.http.entity.ContentType;
-
-import com.google.gson.Gson;
+import net.gpedro.integrations.slack.SlackApi;
+import net.gpedro.integrations.slack.SlackAttachment;
+import net.gpedro.integrations.slack.SlackField;
+import net.gpedro.integrations.slack.SlackMessage;
 
 public class Slack
 {
@@ -39,8 +38,9 @@ public class Slack
 	public List<String> sendBistro(spark.Request req, spark.Response res)
 			throws IOException
 	{
+		SlackApi slack = new SlackApi(this.config.slackUrl());
 
-		Iterator<String> colors = Arrays.asList(COLORS).iterator();
+		Iterator<String> colors = Arrays.asList(this.COLORS).iterator();
 
 		List<String> responses = new ArrayList<String>();
 
@@ -51,91 +51,52 @@ public class Slack
 		}
 		catch (ScraperException e)
 		{
-			Message message = new Message("Error");
-			message.channel = config.slackChannel();
+			SlackMessage message = new SlackMessage("Error").setChannel(
+					this.config.slackChannel());
 
-			Attachment attachment = new Attachment("fallback");
-			attachment.color = "#FF0000";
-			Field field = new Field(e.getClass().getSimpleName());
-			field.value = e.getMessage();
-			attachment.fields.add(field);
-			message.attachments.add(attachment);
-			Request.Post(config.slackUrl()).bodyString(
-					new Gson().toJson(message),
-					ContentType.APPLICATION_JSON).execute().returnContent();
+			SlackAttachment attachment = new SlackAttachment().setFallback(
+					"Error");
+
+			attachment.setColor("#FF0000");
+			SlackField field = new SlackField();
+			field.setTitle(e.getClass().getSimpleName());
+			field.setValue(e.getMessage());
+			attachment.addFields(field);
+			message.addAttachments(attachment);
+			slack.call(message);
 		}
 		for (Entry<IBistro, IMenu> entry : retriever.getTodaysMenu())
 		{
-			Message message = new Message(entry.getKey().getName());
-			message.channel = config.slackChannel();
+			SlackMessage message = new SlackMessage(entry.getKey().getName());
+			message.setChannel(this.config.slackChannel());
 
-			Attachment attachment = new Attachment("fallback");
-			attachment.color = colors.next();
+			SlackAttachment attachment = new SlackAttachment().setFallback(
+					"fallback");
+			attachment.setColor(colors.next());
+
+			boolean hasDish = false;
 			for (IDish dish : entry.getValue().getDishes())
 			{
-				Field field = new Field(dish.getName());
+				hasDish = true;
+				SlackField field = new SlackField();
+				field.setTitle(dish.getName());
 				if (dish.getPrice() > 0)
 				{
-					field.value = PRICE_FORMAT.format(dish.getPrice());
+					field.setValue(PRICE_FORMAT.format(dish.getPrice()));
 				}
-				attachment.fields.add(field);
+				attachment.addFields(field);
 			}
-			if (attachment.fields.size() == 0)
+			if (!hasDish)
 			{
-				Field field = new Field(
+				SlackField field = new SlackField().setValue(
 						"...hat heute nichts im Angebot (oder eine bescheidene Website)");
-				attachment.fields.add(field);
+				attachment.addFields(field);
 			}
-			message.attachments.add(attachment);
+			message.addAttachments(attachment);
 
-			Content content = Request.Post(config.slackUrl()).bodyString(
-					new Gson().toJson(message),
-					ContentType.APPLICATION_JSON).execute().returnContent();
-			responses.add(content.asString());
+			slack.call(message);
 		}
 
 		return responses;
-	}
-
-	private static class Message
-	{
-		public String channel = "test";
-
-		public String icon_emoji = ":fork_and_knife:";
-
-		public List<Attachment> attachments = new ArrayList<Attachment>();
-
-		public final String text;
-
-		public Message(String text)
-		{
-			this.text = text;
-		}
-	}
-
-	private static class Attachment
-	{
-		public final String fallback;
-		public String text;
-		public String pretext;
-		public String color;
-		public List<Field> fields = new ArrayList<Field>();
-
-		public Attachment(String fallback)
-		{
-			this.fallback = fallback;
-		}
-
-	}
-
-	public static class Field
-	{
-		private final String title;
-		private String value;
-
-		public Field(String title)
-		{
-			this.title = title;
-		}
 	}
 }
